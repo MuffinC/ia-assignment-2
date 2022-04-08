@@ -1,3 +1,7 @@
+
+package com.company;
+
+import java.util.Random;
 public class ThreePrisonersDilemma {
 	/*
 	 This Java program models the two-player Prisoner's Dilemma game.
@@ -53,14 +57,12 @@ public class ThreePrisonersDilemma {
             return 0;
         }
     }
-
     class NastyPlayer extends Player {
         //NastyPlayer always defects
         int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
             return 1;
         }
     }
-
     class RandomPlayer extends Player {
         //RandomPlayer randomly picks his action each time
         int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
@@ -70,7 +72,6 @@ public class ThreePrisonersDilemma {
                 return 1;  //defects half the time
         }
     }
-
     class TolerantPlayer extends Player {
         //TolerantPlayer looks at his opponents' histories, and only defects
         //if at least half of the other players' actions have been defects
@@ -95,7 +96,6 @@ public class ThreePrisonersDilemma {
                 return 0;
         }
     }
-
     class FreakyPlayer extends Player {
         //FreakyPlayer determines, at the start of the match,
         //either to always be nice or always be nasty.
@@ -112,7 +112,6 @@ public class ThreePrisonersDilemma {
             return action;
         }
     }
-
     class T4TPlayer extends Player {
         //Picks a random opponent at each play,
         //and uses the 'tit-for-tat' strategy against them
@@ -141,14 +140,12 @@ public class ThreePrisonersDilemma {
             if (n==0) return 1; //Start with Defect
             else if (n==1) return 0; //Cooperate
             else if (n==2) return 0; //Cooperate
-
             else if (n == 3 && oppHistory1[1] ==0 && oppHistory1[2] ==0){
                 return 1;
             }
             else if (n == 3 && oppHistory2[1] ==0 && oppHistory2[2] ==0){
                 return 1;
             }
-
             else{
                 if (oppHistory1[n-1] == 1)
                     return oppHistory1[n-1];
@@ -204,6 +201,7 @@ public class ThreePrisonersDilemma {
                     return oppHistory2[n-1];
             }
             else{
+
                 for(int y=0;y<6;y++){
                     sum=sum+myHistory[y];
                 }
@@ -246,7 +244,7 @@ public class ThreePrisonersDilemma {
          * */
         int sum=0;
         int H=0;
-        int thresh= 100;//3x18, max is 144=8*18,  min is 0.
+        int thresh= 78;//3x18, max is 144=8*18,  min is 0.
         int count=0;
         int avg=0;
         int total=0;
@@ -259,17 +257,20 @@ public class ThreePrisonersDilemma {
                 if(avg<thresh){
                     count=0;
                 }
+                total=0;//reset parameters
+                avg=0;
             }
             if(H==1){// sus T4T for tit for 2 tats
                 H=0;
                 if (Math.random() < 0.5){
+                    sum=0;
                     count++;
                     return oppHistory1[n-1];}
                 else{
+                    sum=0;
                     count++;
                     return oppHistory2[n-1];}
             }
-
             if(count<6){
                 // by default first 6 is T4T
                 if (count==0) {
@@ -281,28 +282,30 @@ public class ThreePrisonersDilemma {
                 else{
                     count++;
                     return oppHistory2[n-1];}
-            }
+            }//first iteration n=0
 
             else{
                 for(int y=0;y<6;y++){
                     sum=sum+myHistory[y];
                 }
-
                 if(sum ==0){
                     // T4T detected or always cooperate, the previous iteration is already all cooperate
                     // Hence u just need to carry on as T4T
                     if (Math.random() < 0.5) {
                         count++;
+                        sum=0;
                         return oppHistory1[n - 1];
                     }
                     else{
                         count++;
+                        sum=0;
                         return oppHistory2[n-1];
                     }
                 }
 
                 else if (sum>=4){//always defect scenario
                     count++;
+                    sum=0;
                     return 1;// defect also
                 }
 
@@ -311,13 +314,16 @@ public class ThreePrisonersDilemma {
                     //to adopt tit4 2 tats to recover mutual cooperattion
                     if (Math.random() < 0.5){
                         count++;
+                        sum=0;
                         return oppHistory1[n-1];}
                     else{
                         count++;
+                        sum=0;
                         return oppHistory2[n-1];}
                 }
                 else{
                     // every other strategy is random strat, counter is to return always defect
+                    sum=0;
                     count++;
                     return 1;
                 }
@@ -534,9 +540,6 @@ public class ThreePrisonersDilemma {
             return expectedUtility;
         }
     }
-
-
-
     // win stay lose shift
     class WinStayLoseShift extends Player {
         int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
@@ -557,6 +560,151 @@ public class ThreePrisonersDilemma {
         }
     }
 
+    class Mervyn extends Player {
+
+        final String NAME = "[*] MERVYN CHIONG JIA RONG";
+        final String MATRIC_NO = "[*] U1921023k";
+
+        //We need to keep track of our total scores and our opponents
+        int myscore=0, oppon1score=0, oppon2score=0;
+        int[] myhist, opp1hist, opp2hist;
+
+        // If opponents are cooperative, no reason to defect. Therefore, need to keep track of cooperation
+        int oppo1coop = 0, oppo2coop = 0;
+
+        int prevround;
+        //aside from this, it is ideal to always keep track on what our opponents are playing and how they react at all times + yourself
+        int mylastmove, opp1lastmove, opp2lastmove;
+
+
+        int selectAction(int n, int[] myHistory, int[] oppHistory1, int[] oppHistory2) {
+            //Always cooperate on the first round
+            if (n == 0) return 0;
+
+            //Update all variables
+            this.prevround = n - 1; // previous round index
+            this.myhist = myHistory;
+            this.opp1hist = oppHistory1;
+            this.opp2hist = oppHistory2;
+
+            //update what was played previously
+            mylastmove = myHistory[prevround];
+            opp1lastmove = oppHistory1[prevround];
+            opp2lastmove = oppHistory2[prevround];
+
+            //Update scores of opponents +me, it is assumed that you will be the player 2 for both of the other players
+            this.myscore = myscore + payoff[mylastmove][opp1lastmove][opp2lastmove];
+            this.oppon1score = oppon1score + payoff[opp1lastmove][opp2lastmove][mylastmove];
+            this.oppon2score = oppon2score + payoff[opp2lastmove][opp1lastmove][mylastmove];
+
+            //Always keep track of cooperation from opponents
+            if (n > 0) {
+                if (oppHistory1[prevround] == 0) {
+                    oppo1coop += 1;
+                }
+                if (oppHistory2[prevround] == 0) {
+                    oppo2coop += 1;
+                }
+            }
+
+            //~Update of data completed~
+
+            /*~Implementation of rules~
+             * I will be seperating each scenario into a seperate functions
+             * to make things easier to understand.
+             * Scenario 1: When both player 1 and 2 are not cooperating for a vast majority of the game
+             * Retaliate as a response, in here we introduce an element of randomness, because as the game goes on. Unpredictability
+             * can be the 1 element needed to win. Currently, the chance of it occurring is set to 0.01%
+             * */
+            if (oppo1coop < n/2 && oppo2coop < n/2) {
+                return RandomnessR(1);
+                //return 1;
+            }
+            /*
+            * Scenario 2: They have been rather cooperative, no reason to exploit nor break the mold.
+            * Hence, no randomness is needed
+            * */
+
+            if (oppo1coop >= n/2 && oppo2coop >= n/2) {
+                //return RandomnessR(0);
+                return 0;
+            }
+            else {
+                /*The above 2 statements handle when opponents have mainly defected or cooperated for a vast majority of the time
+                * This is for when 1 is a majority defect and 1 is majority coop, to evaluate our action we need to see what is the best course of action
+                * based on the overall grand scheme of things.
+                * */
+                if(myscore>oppon1score || myscore>oppon2score){
+                    // Scenario 3: When your agent is the 2nd highest of the trio
+                    return maximise(n,oppo1coop,oppo2coop);
+                }
+                else{
+                    //Scenario 4: When your agent somehow has equal amount to an ooponent
+                    return panacea(n,oppo1coop,oppo2coop,myHistory,oppHistory1,oppHistory2);
+                }
+            }
+        }
+        private int RandomnessR(int actions){
+            // Be unpredictable, means that we need to add an element of randomness or something that seems weird so that people are thrown off
+            int nums[] = new int[1000];
+            Random r = new Random();
+            if (actions == 0) {
+                //more likely to cooperate
+                for (int x = 0; x < 999; x++) {
+                    nums[x] = 0;
+                }
+                nums[999] = 1;
+                int randomNumber = r.nextInt(nums.length);
+                return nums[randomNumber];
+            } else {
+                for (int x = 0; x < 999; x++) {
+                    nums[x] = 1;
+                }
+                nums[999] = 0;
+                int randomNumber = r.nextInt(nums.length);
+                return nums[randomNumber];
+            }
+        }
+        private int maximise(int total,int coop1,int coop2){
+            int predic1,predic2;//prediction on what the opponent will do
+            if (coop1>total/2) predic1= 0;
+            else predic1=1;
+            if (coop2>total/2) predic2=0;
+            else predic2=1;
+            //base your actions, on what was predicted that will net you the highest gain
+            if(payoff[0][predic1][predic2]>payoff[1][predic1][predic2]) return 0;
+            else return 1;
+            }
+        private int panacea(int total,int coop1,int coop2,int []myhist,int[]opp1hist,int[]opp2hist){
+            int defect1,defect2;
+            defect1 = total-coop1;
+            defect2 = total-coop2;
+            double cooputil=0,defectutil=0;
+            float[] probDist1 = new float[2];
+            float[] probDist2 = new float[2];
+
+            probDist1[0]=coop1/opp1hist.length;// coop probability for opp1
+            probDist1[1]=defect1/opp1hist.length;// defect probability for opp1
+
+            probDist2[0]=coop2/opp2hist.length;// coop probability for opp2
+            probDist2[1]=defect2/opp2hist.length;// defect probability for opp1
+            //cooputility
+            for(int x=0;x<2;x++){
+                for(int y=0;y<2;y++){
+                    cooputil+= probDist1[x]* probDist2[y]* payoff[0][x][y];
+                }
+            }
+            //defectutility
+            for(int x=0;x<2;x++){
+                for(int y=0;y<2;y++){
+                    defectutil+= probDist1[x]* probDist2[y]* payoff[1][x][y];
+                }
+            }
+            if (cooputil>defectutil)return 0;
+            else return 1;
+
+        }
+    }
 
     /* In our tournament, each pair of strategies will play one match against each other.
      This procedure simulates a single match and returns the scores. */
@@ -593,7 +741,7 @@ public class ThreePrisonersDilemma {
 	 (strategies) in between matches. When you add your own strategy,
 	 you will need to add a new entry to makePlayer, and change numPlayers.*/
 
-    int numPlayers = 13;
+    int numPlayers = 14;
     Player makePlayer(int which) {
         switch (which) {
             case 0: return new NicePlayer();
@@ -608,7 +756,9 @@ public class ThreePrisonersDilemma {
             case 9: return new WinStayLoseShift();
             case 10: return new PAVLOV2();
             case 11: return new Nasty2();
-            case 12: return new Mundhra_Shreyas_Sudhir_Player();
+            case 12: return new Mervyn();
+            case 13: return new Mundhra_Shreyas_Sudhir_Player();
+            //case 14: return new MERVYN_CHIONG_Player();
         }
         throw new RuntimeException("Bad argument passed to makePlayer");
     }
@@ -617,12 +767,15 @@ public class ThreePrisonersDilemma {
 
     public static void main (String[] args) {
         ThreePrisonersDilemma instance = new ThreePrisonersDilemma();
-        instance.runTournament();
+        //for(int y=0;y<1000;y++){
+            int[]top_players=instance.runTournament();
+            System.out.print(top_players);
+        //}
     }
 
     boolean verbose = true; // set verbose = false if you get too much text output
 
-    void runTournament() {
+    int[] runTournament() {
         float[] totalScore = new float[numPlayers];
 
         // This loop plays each triple of players against each other.
@@ -662,7 +815,41 @@ public class ThreePrisonersDilemma {
         for (int i=0; i<numPlayers; i++)
             System.out.println(makePlayer(sortedOrder[i]).name() + ": "
                     + totalScore[sortedOrder[i]] + " points.");
+        System.out.println();
+        //int[] outcome = [sortedOrder,totalScore];
+        return sortedOrder;
 
     } // end of runTournament()
 
-} // end of class PrisonersDilemma
+}// end of class PrisonersDilemma
+/*
+private int RandomnessR(int actions) {
+    //[2] Be unpredictable, means that we need to add an element of randomness or something that seems weird so that people are thrown off
+    int nums[] = new int[99];
+    double[] discreteprobablity;
+    Random r = new Random();
+    if (actions == 0) {
+        //more likely to cooperate
+        for (int x = 0; x < 99; x++) {
+            nums[x] = 0;
+        }
+        nums[99] = 1;
+        int randomNumber = r.nextInt(nums.length);
+        return nums[randomNumber];
+    } else {
+        for (int x = 0; x < 99; x++) {
+            nums[x] = 1;
+        }
+        nums[99] = 0;
+        int randomNumber = r.nextInt(nums.length);
+        return nums[randomNumber];
+    }
+}
+private int alllose(int myscore,int opp1score,int opp2score){
+        //if losing, defect. else if winning cooperate
+        if(myscore<opp1score && myscore<opp2score){
+            return 1;
+        }
+        else return 0;
+    }
+}*/
